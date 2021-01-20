@@ -1,34 +1,4 @@
-Skip to content
-Search or jump to…
 
-Pull requests
-Issues
-Marketplace
-Explore
- 
-@NazifaKazimi 
-wangjin0818
-/
-word_embedding_refine
-2
-147
-Code
-Issues
-3
-Pull requests
-Actions
-Projects
-Wiki
-Security
-Insights
-word_embedding_refine/glove_twitter_refine.py /
-@wangjin0818
-wangjin0818 original submit!
-Latest commit 7a6a419 on Aug 13, 2018
- History
- 1 contributor
-184 lines (149 sloc)  6.24 KB
- 
 from __future__ import print_function
 from __future__ import absolute_import
 
@@ -90,23 +60,7 @@ def most_similar(word, w2v_model, anew_dict, weight_dict, top=10):
     return ret_dict
 
 if __name__ == '__main__':
-    program = os.path.basename(sys.argv[0])
-    logger = logging.getLogger(program)
-    
-    logging.basicConfig(format='%(asctime)s: %(levelname)s: %(message)s')
-    logging.root.setLevel(level=logging.INFO)
-    logger.info(r"running %s" % ''.join(sys.argv))
-
-    parser = argparse.ArgumentParser()
-
-    parser.add_argument("--filename", "-f", help="pre-trained word embeddings file")
-    parser.add_argument("--lexicon", "-l", help="lexicon which provide sentiment intensity")
-    parser.add_argument("--top", "-t", help="top-k nearest neighbor", default=10)
-    parser.add_argument("--iter", "-i", help="refinement interation", default=100)
-    parser.add_argument("--beta", "-b", help="parameter beta", default=0.1)
-    parser.add_argument("--gamma", "-g", help="parameter gamma", default=0.1)
-    parser.add_argument("--valence", "-v", help="max value of valence", default=9.0)
-
+   
     args = parser.parse_args()
 
     valence_max = args.valence
@@ -115,22 +69,17 @@ if __name__ == '__main__':
     top = args.top
     max_iter = args.iter
 
-    logging.info('loading w2v_model...')
     # w2v_model_file = os.path.join('vector', 'glove.twitter.27B.50d.gensim.txt')
     w2v_model_file = args.filename
 
     w2v_model = gensim.models.KeyedVectors.load_word2vec_format(w2v_model_file, binary=False)
     embedding_dim = w2v_model.vector_size
-    logging.info('w2v_model loaded!')
 
     # load lexicon
-    logging.info('loading lexicon...')
     # anew_file = os.path.join('lexicon', 'eanew_seed.txt')
     anew_file = args.lexicon
     anew = pd.read_table(anew_file, header=None, sep='\t', quoting=3)
-    logging.info('lexicon loaded!')
 
-    logging.info('prepare data...')
     anew_dict = {}
     vector_dict = {}
     for i in range(len(anew[0])):
@@ -141,7 +90,6 @@ if __name__ == '__main__':
             continue
 
     # weight_dict
-    logging.info('weight_dict')
     weight_dict = {}
     for i in anew_dict.keys():
         for j in anew_dict.keys():
@@ -149,7 +97,6 @@ if __name__ == '__main__':
             update_dict(weight_dict, i, j, weight)
 
     # weighted matrix
-    logging.info('weight_matrix')
     weight_matrix = np.zeros((len(anew_dict), len(anew_dict)))
     for i in range(len(anew_dict.keys())):
         word_i = anew_dict.keys()[i]
@@ -162,17 +109,13 @@ if __name__ == '__main__':
                 weight_matrix[j][i] = sim_dict[word_j]
 
     # vertex matrix
-    logging.info('vertex_matrix')
     vertex_matrix = np.zeros((len(anew_dict.keys()), embedding_dim))
     for i in range(vertex_matrix.shape[0]):
         for j in range(vertex_matrix.shape[1]):
             vector = vector_dict[anew_dict.keys()[i]]
             vertex_matrix[i, j] = vector[j]
 
-    logging.info('weight_matrix shape: ' + str(weight_matrix.shape))
-    logging.info('vectex_matrix shape: ' + str(vertex_matrix.shape))
-    
-    logging.info('starting refinement')
+   
     origin_vertex_matrix = vertex_matrix
     pre_vertex_matrix = vertex_matrix
     pre_distance = 0.0
